@@ -30,7 +30,7 @@ The Beszel example configuration monitors `systems`: its `info` JSON holds the l
 
 ## Runtime Behavior
 
-- Authenticate with PocketBase through `POCKETBASE_API_KEY` as a Bearer token and never log it. The configured service account requires at least list and view access to every monitored collection.
+- Authenticate with PocketBase through `POCKETBASE_API_KEY` as an authorization token and never log it. The configured service account requires at least list and view access to every monitored collection.
 - Create a PocketBase Realtime `*` subscription for every configured collection to receive create, update, and delete events.
 - Subscribe before retrieving the initial snapshot so that changes are not missed during startup; when data races, prefer the record with the newer `updated` value.
 - On reconnect, restore subscriptions and resynchronize stateful modes (`latest` and `records`). `events` intentionally remain at-most-once; interruptions are logged and documented.

@@ -1,0 +1,4 @@
+collections:
+  - collection: systems
+    topic: dev/beszel/systems
+    publish: records
