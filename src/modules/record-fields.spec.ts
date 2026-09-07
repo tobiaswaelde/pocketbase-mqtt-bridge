@@ -31,4 +31,21 @@ describe('flattenRecordFields', () => {
       { path: ['nullable'], payload: 'null' },
     ]);
   });
+
+  it('skips undefined values and preserves invalid JSON strings and empty topic segments', () => {
+    expect(
+      flattenRecordFields({
+        '': 'empty-key',
+        callback: () => undefined,
+        invalid: '{invalid',
+        mixed: [{ id: 1 }, 'scalar'],
+        omitted: undefined,
+      }),
+    ).toEqual([
+      { path: ['%00'], payload: '"empty-key"' },
+      { path: ['invalid'], payload: '"{invalid"' },
+      { path: ['mixed', '0', 'id'], payload: '1' },
+      { path: ['mixed', '1'], payload: '"scalar"' },
+    ]);
+  });
 });
