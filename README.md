@@ -25,3 +25,4 @@ The included Beszel configuration publishes each current `systems` record and it
 - [MQTT contract](https://tobiaswaelde.github.io/pocketbase-mqtt-bridge/mqtt)
 - [Beszel](https://tobiaswaelde.github.io/pocketbase-mqtt-bridge/beszel)
 - [Docker deployment](https://tobiaswaelde.github.io/pocketbase-mqtt-bridge/deployment)
+- [Changelog](CHANGELOG.md)
