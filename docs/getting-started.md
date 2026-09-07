@@ -7,6 +7,8 @@ cp .env.example .env
 cp config/config.example.yml config/config.yml
 ```
 
+Use the PocketBase server URL in `.env`. Dashboard URLs ending in `/_/` are normalized automatically.
+
 Start the bridge with Docker Compose:
 
 ```bash
