@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { CONFIG, type CollectionConfig } from '~/config/config';
 import { MqttService } from './mqtt/mqtt.service';
 import { type PocketBaseEvent, type PocketBaseRecord, PocketBaseService } from './pocketbase/pocketbase.service';
@@ -14,7 +14,9 @@ export class BridgeService implements OnModuleDestroy, OnModuleInit {
   private retryTimer?: NodeJS.Timeout;
 
   constructor(
+    @Inject(MqttService)
     private readonly mqtt: MqttService,
+    @Inject(PocketBaseService)
     private readonly pocketbase: PocketBaseService,
   ) {}
 
