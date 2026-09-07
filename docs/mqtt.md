@@ -1,6 +1,6 @@
 # MQTT contract
 
-Payloads are UTF-8 JSON. State topics are retained so a new MQTT consumer receives the most recently published state immediately.
+Payloads are UTF-8 JSON. State topics are retained so a new MQTT consumer receives the most recently published state immediately. Each collection's `payload` setting selects complete records, field topics, or both.
 
 ## Events mode
 
@@ -12,7 +12,7 @@ Payloads are UTF-8 JSON. State topics are retained so a new MQTT consumer receiv
 <topic>/events/delete
 ```
 
-Each payload has this shape:
+With `payload: record` or `payload: both`, each payload has this shape:
 
 ```json
 {
@@ -20,6 +20,14 @@ Each payload has this shape:
   "record": { "id": "record-id", "updated": "2026-09-07 10:00:00.000Z" }
 }
 ```
+
+With `payload: fields` or `payload: both`, each field in `record` is published separately below the action and record ID:
+
+```text
+<topic>/events/update/<record-id>/fields/<field-path>
+```
+
+For example, a `record.info.cpu.usage` value is published to `<topic>/events/update/<record-id>/fields/info/cpu/usage`.
 
 Events are at-most-once across a PocketBase Realtime interruption. Use `latest` or `records` when a consumer needs an eventually resynchronized state view.
 
@@ -32,7 +40,13 @@ Events are at-most-once across a PocketBase Realtime interruption. Use `latest` 
 <topic>/get
 ```
 
-`<topic>/latest` is retained. Publish any non-retained payload to `<topic>/get` to fetch it again:
+`<topic>/latest` is retained when `payload` includes `record`. When `payload` includes `fields`, retained field values use this shape:
+
+```text
+<topic>/latest/fields/<field-path>
+```
+
+Publish any non-retained payload to `<topic>/get` to fetch it again:
 
 ```bash
 mosquitto_pub -h mqtt.example.net -t home/measurements/get -n
@@ -43,10 +57,16 @@ Retained `get` messages are ignored to prevent reconnect replays.
 
 ## Records mode
 
-`records` retains one complete state record per PocketBase ID:
+`records` retains one complete state record per PocketBase ID when `payload` includes `record`:
 
 ```text
 <topic>/records/<record-id>
 ```
 
-The bridge loads every record at startup and after a Realtime reconnect. A delete clears the corresponding retained topic with an empty retained payload.
+When `payload` includes `fields`, each record field has its own retained topic:
+
+```text
+<topic>/records/<record-id>/fields/<field-path>
+```
+
+Nested JSON objects use nested topic segments, and array indices become segments. For example, `info.cpu.usage` and `disks[0]` are published below `fields/info/cpu/usage` and `fields/disks/0`. Updates clear retained field topics that no longer exist; a delete clears both the complete-record and field topics selected by the payload configuration.

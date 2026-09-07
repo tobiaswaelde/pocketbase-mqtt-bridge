@@ -6,15 +6,27 @@ describe('configSchema', () => {
       configSchema.parse({
         collections: [
           { collection: 'audit_log', publish: 'events', topic: 'home/pocketbase/audit' },
-          { collection: 'systems', publish: 'latest', sort: '-created,-id', topic: 'home/pocketbase/systems' },
-          { collection: 'users', publish: 'records', topic: 'home/pocketbase/users' },
+          {
+            collection: 'systems',
+            payload: 'fields',
+            publish: 'latest',
+            sort: '-created,-id',
+            topic: 'home/pocketbase/systems',
+          },
+          { collection: 'users', payload: 'both', publish: 'records', topic: 'home/pocketbase/users' },
         ],
       }),
     ).toEqual({
       collections: [
-        { collection: 'audit_log', publish: 'events', topic: 'home/pocketbase/audit' },
-        { collection: 'systems', publish: 'latest', sort: '-created,-id', topic: 'home/pocketbase/systems' },
-        { collection: 'users', publish: 'records', topic: 'home/pocketbase/users' },
+        { collection: 'audit_log', payload: 'record', publish: 'events', topic: 'home/pocketbase/audit' },
+        {
+          collection: 'systems',
+          payload: 'fields',
+          publish: 'latest',
+          sort: '-created,-id',
+          topic: 'home/pocketbase/systems',
+        },
+        { collection: 'users', payload: 'both', publish: 'records', topic: 'home/pocketbase/users' },
       ],
     });
   });
@@ -34,6 +46,7 @@ describe('configSchema', () => {
       ],
     },
     { collections: [{ collection: 'systems', publish: 'records', sort: '-updated', topic: 'home/systems' }] },
+    { collections: [{ collection: 'systems', payload: 'unknown', publish: 'records', topic: 'home/systems' }] },
   ];
 
   it.each(invalidConfigs)('rejects invalid collection configuration: %j', ({ collections }) => {

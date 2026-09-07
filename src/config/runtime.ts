@@ -6,6 +6,7 @@ import { z } from 'zod';
 export const collectionSchema = z
   .object({
     collection: z.string().regex(/^[A-Za-z0-9_-]+$/, 'collection must contain only letters, numbers, _ and -'),
+    payload: z.enum(['record', 'fields', 'both']).default('record'),
     publish: z.enum(['events', 'latest', 'records']),
     sort: z.string().min(1).optional(),
     topic: z

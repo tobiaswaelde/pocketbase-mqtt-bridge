@@ -7,9 +7,12 @@ collections:
   - collection: systems
     topic: home/beszel/systems
     publish: records
+    payload: both
 ```
 
-Subscribe to all current systems:
+This preserves the complete system record while also exposing overview values from the `info` JSON column as retained field topics such as `home/beszel/systems/records/<record-id>/fields/info/cpu/usage`.
+
+Subscribe to all current systems and their field values:
 
 ```bash
 mosquitto_sub -h mqtt.example.net -v -t 'home/beszel/systems/records/#'
