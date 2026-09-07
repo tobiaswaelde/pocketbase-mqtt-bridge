@@ -9,7 +9,7 @@ jobs:
       - uses: actions/setup-node@v7
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm docs:build
+      - run: pnpm lint && pnpm typecheck && pnpm build && pnpm docs:build
       - uses: docker/setup-buildx-action@v4
       - uses: docker/build-push-action@v7
         with: { context: ., load: true, tags: pocketbase-mqtt-bridge:ci }

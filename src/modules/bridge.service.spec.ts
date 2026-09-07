@@ -57,6 +57,24 @@ function createPocketBase() {
       eventHandlers.set(collection, handler);
       return jest.fn();
     }),
+    resetSubscriptions: jest.fn(async () => undefined),
+  };
+}
+
+function internals(service: BridgeService) {
+  return service as never as {
+    handleEvent: (config: CollectionConfig, event: PocketBaseEvent) => Promise<void>;
+    initialize: () => Promise<void>;
+    knownFieldTopics: Map<string, Set<string>>;
+    knownRecords: Map<string, Set<string>>;
+    latestUpdated: Map<string, string>;
+    clearState: (config: CollectionConfig, key: string, topic: string) => void;
+    publishEvent: (config: CollectionConfig, event: PocketBaseEvent) => void;
+    publishLatest: (config: CollectionConfig, record: PocketBaseRecord) => void;
+    publishRecord: (config: CollectionConfig, record: PocketBaseRecord) => void;
+    publishState: (config: CollectionConfig, key: string, topic: string, record: PocketBaseRecord) => void;
+    syncLatest: (config: CollectionConfig) => Promise<void>;
+    syncRecords: (config: CollectionConfig) => Promise<void>;
   };
 }
 
@@ -157,5 +175,115 @@ describe('BridgeService', () => {
 
     expect(pocketbase.latest).toHaveBeenCalledTimes(2);
     expect(pocketbase.list).toHaveBeenCalledTimes(2);
+  });
+
+  it('clears state that is absent from the latest result or a records resynchronization', async () => {
+    const mqtt = createMqtt();
+    const pocketbase = createPocketBase();
+    const service = new BridgeService(mqtt as never, pocketbase as never);
+    const fieldsLatest: CollectionConfig = {
+      collection: 'empty',
+      payload: 'fields',
+      publish: 'latest',
+      topic: 'home/empty',
+    };
+    const records: CollectionConfig = {
+      collection: 'records',
+      payload: 'both',
+      publish: 'records',
+      topic: 'home/records',
+    };
+    const privateService = internals(service);
+
+    privateService.publishLatest(fieldsLatest, record('latest', '2026-01-02 00:00:00.000Z'));
+    pocketbase.latest.mockResolvedValueOnce(undefined as never);
+    await privateService.syncLatest(fieldsLatest);
+    privateService.publishRecord(records, record('removed', '2026-01-02 00:00:00.000Z'));
+    privateService.knownRecords.set('records', new Set(['removed']));
+    pocketbase.list.mockResolvedValueOnce([]);
+    await privateService.syncRecords(records);
+    privateService.clearState(fieldsLatest, 'missing', 'home/empty/missing');
+
+    expect(mqtt.publish).toHaveBeenCalledWith('home/empty/latest/fields/value', null, { retain: true });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/removed', null, { retain: true });
+  });
+
+  it('honours record-only and field-only payloads and ignores stale records', () => {
+    const mqtt = createMqtt();
+    const pocketbase = createPocketBase();
+    const service = new BridgeService(mqtt as never, pocketbase as never);
+    const recordOnly: CollectionConfig = {
+      collection: 'record-only',
+      payload: 'record',
+      publish: 'records',
+      topic: 'home/record',
+    };
+    const fieldsOnly: CollectionConfig = {
+      collection: 'fields-only',
+      payload: 'fields',
+      publish: 'events',
+      topic: 'home/fields',
+    };
+    const privateService = internals(service);
+    const current = record('one', '2026-01-02 00:00:00.000Z');
+
+    privateService.publishState(recordOnly, 'record-only/one', 'home/record/records/one', current);
+    privateService.publishEvent(fieldsOnly, { action: 'create', record: current });
+    privateService.publishEvent(recordOnly, { action: 'create', record: current });
+    privateService.publishRecord(recordOnly, current);
+    privateService.publishRecord(recordOnly, current);
+
+    expect(mqtt.publish).toHaveBeenCalledWith('home/record/records/one', expect.stringContaining('"one"'), {
+      retain: true,
+    });
+    expect(mqtt.publish).not.toHaveBeenCalledWith('home/record/records/one/fields/value', '"one"', { retain: true });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/fields/events/create/one/fields/value', '"one"');
+    expect(mqtt.publish).not.toHaveBeenCalledWith('home/fields/events/create', expect.any(String));
+    expect(mqtt.publish).toHaveBeenCalledWith('home/record/events/create', expect.stringContaining('"one"'));
+    expect(mqtt.publish.mock.calls.filter(([topic]) => topic === 'home/record/records/one')).toHaveLength(2);
+  });
+
+  it('processes latest events, reports processing errors, retries failed setup, and cleans up', async () => {
+    jest.useFakeTimers();
+    const mqtt = createMqtt();
+    const pocketbase = createPocketBase();
+    const service = new BridgeService(mqtt as never, pocketbase as never);
+    const privateService = internals(service);
+    const latest: CollectionConfig = {
+      collection: 'latest',
+      payload: 'record',
+      publish: 'latest',
+      topic: 'home/latest',
+    };
+    const logger = jest
+      .spyOn((service as never as { logger: { error: jest.Mock } }).logger, 'error')
+      .mockImplementation(() => undefined);
+
+    await privateService.handleEvent(latest, {
+      action: 'update',
+      record: record('latest', '2026-01-03 00:00:00.000Z'),
+    });
+    pocketbase.latest.mockRejectedValueOnce(new Error('sync error'));
+    await privateService.handleEvent(latest, {
+      action: 'update',
+      record: record('latest', '2026-01-04 00:00:00.000Z'),
+    });
+    pocketbase.subscribe.mockRejectedValueOnce(new Error('subscribe error'));
+    await privateService.initialize();
+    jest.advanceTimersByTime(5000);
+    await Promise.resolve();
+    service.onModuleDestroy();
+    await privateService.initialize();
+
+    new BridgeService(createMqtt() as never, createPocketBase() as never).onModuleDestroy();
+
+    expect(pocketbase.latest).toHaveBeenCalledTimes(2);
+    expect(logger).toHaveBeenCalledWith('Failed to process PocketBase update event for latest', expect.any(Error));
+    expect(logger).toHaveBeenCalledWith(
+      'PocketBase synchronization setup failed; retrying in five seconds',
+      expect.any(Error),
+    );
+    expect(pocketbase.resetSubscriptions).toHaveBeenCalled();
+    jest.useRealTimers();
   });
 });
