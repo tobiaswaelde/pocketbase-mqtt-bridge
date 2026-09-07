@@ -1,6 +1,9 @@
+import { SELF_DECLARED_DEPS_METADATA } from '@nestjs/common/constants';
 import type { CollectionConfig } from '~/config/config';
 import type { MqttBridgeClient } from './mqtt/mqtt.service';
+import { MqttService } from './mqtt/mqtt.service';
 import type { PocketBaseEvent, PocketBaseRecord } from './pocketbase/pocketbase.service';
+import { PocketBaseService } from './pocketbase/pocketbase.service';
 
 const collections: CollectionConfig[] = [
   { collection: 'events', publish: 'events', topic: 'home/events' },
@@ -58,6 +61,15 @@ function createPocketBase() {
 }
 
 describe('BridgeService', () => {
+  it('declares its runtime dependency injection tokens explicitly', () => {
+    expect(Reflect.getMetadata(SELF_DECLARED_DEPS_METADATA, BridgeService)).toEqual(
+      expect.arrayContaining([
+        { index: 0, param: MqttService },
+        { index: 1, param: PocketBaseService },
+      ]),
+    );
+  });
+
   it('publishes state snapshots and events using their configured modes', async () => {
     const mqtt = createMqtt();
     const pocketbase = createPocketBase();
