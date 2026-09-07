@@ -1,0 +1,14 @@
+services:
+  pocketbase-mqtt-bridge:
+    image: ghcr.io/tobiaswaelde/pocketbase-mqtt-bridge:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    user: '${UID:-1000}:${GID:-1000}'
+    env_file: .env
+    environment:
+      CORS_ORIGIN: '${CORS_ORIGIN:-*}'
+      HOST: '${HOST:-0.0.0.0}'
+      PORT: '${PORT:-3000}'
+    volumes:
+      - ./config:/app/config:ro
+    ports:
+      - '${PORT:-3000}:${PORT:-3000}'
