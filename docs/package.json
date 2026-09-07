@@ -1,0 +1,9 @@
+{
+  "name": "pocketbase-mqtt-bridge-docs",
+  "private": true,
+  "scripts": {
+    "dev": "vitepress dev .",
+    "build": "vitepress build .",
+    "preview": "vitepress preview ."
+  }
+}
