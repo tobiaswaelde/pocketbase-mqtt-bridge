@@ -1,4 +1,4 @@
-FROM node:25-bookworm-slim AS build
+FROM node:26-bookworm-slim AS build
 WORKDIR /app
 
 RUN npm install --global pnpm@11.24.0
@@ -10,7 +10,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build && rm -f dist/*.map
 
-FROM node:25-bookworm-slim
+FROM node:26-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production CONFIG_FILE=/app/config/config.yml
 
