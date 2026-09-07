@@ -1,9 +1,10 @@
 import * as dotenv from 'dotenv';
 import { cleanEnv, num, str, url } from 'envalid';
+import { normalizeEnvironment } from './environment';
 
 dotenv.config();
 
-const environment = cleanEnv(process.env, {
+const environment = cleanEnv(normalizeEnvironment(process.env), {
   CORS_ORIGIN: str({ default: '*' }),
   HOST: str({ default: '0.0.0.0' }),
   MQTT_CLIENT_ID: str({ default: '' }),
