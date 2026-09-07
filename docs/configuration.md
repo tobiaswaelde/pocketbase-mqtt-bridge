@@ -44,6 +44,6 @@ collections:
 - `payload` is `record`, `fields`, or `both`. It defaults to `record` for backwards compatibility.
 - `sort` is optional and only valid with `latest`. Its default is `-updated,-id`.
 
-`record` publishes the existing complete JSON payload. `fields` publishes every record field separately, including nested JSON object keys and array indices. `both` emits both representations. Field values are JSON-encoded scalars or empty JSON containers, and their topic path segments are URL-encoded when a source key contains MQTT-reserved characters.
+`record` publishes the existing complete JSON payload. `fields` publishes every record field separately, including nested JSON object keys. Scalar arrays remain one JSON-array value, while arrays containing objects use array indices as topic segments. `both` emits both representations. Field values are JSON-encoded scalars or empty JSON containers, and their topic path segments are URL-encoded when a source key contains MQTT-reserved characters.
 
 Collections and topics must be unique. Version 1 intentionally does not support PocketBase filters or field projections.
