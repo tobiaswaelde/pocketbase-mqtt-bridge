@@ -69,4 +69,4 @@ When `payload` includes `fields`, each record field has its own retained topic:
 <topic>/records/<record-id>/fields/<field-path>
 ```
 
-Nested JSON objects use nested topic segments, and array indices become segments. For example, `info.cpu.usage` and `disks[0]` are published below `fields/info/cpu/usage` and `fields/disks/0`. Updates clear retained field topics that no longer exist; a delete clears both the complete-record and field topics selected by the payload configuration.
+Nested JSON objects use nested topic segments. Scalar arrays remain one JSON array at their field topic, so `disks` is published to `fields/disks` with a payload such as `["nvme0n1"]`. Arrays containing objects use array indices as segments, so `interfaces[0].name` is published below `fields/interfaces/0/name`. Updates clear retained field topics that no longer exist; a delete clears both the complete-record and field topics selected by the payload configuration.

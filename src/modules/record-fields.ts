@@ -14,7 +14,7 @@ export function flattenRecordFields(record: Record<string, unknown>): RecordFiel
 function appendField(fields: RecordField[], path: string[], value: unknown) {
   if (value === undefined) return;
   if (Array.isArray(value)) {
-    if (!value.length) return addField(fields, path, value);
+    if (!value.some(isObjectRecord)) return addField(fields, path, value);
     value.forEach((entry, index) => appendField(fields, [...path, String(index)], entry));
     return;
   }
@@ -38,6 +38,10 @@ function encodeTopicSegment(value: string) {
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return isObject(value) && !Array.isArray(value);
 }
 
 function parseJsonValue(value: unknown): unknown {
