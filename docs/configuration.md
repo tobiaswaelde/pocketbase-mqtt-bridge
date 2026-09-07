@@ -26,18 +26,24 @@ collections:
   - collection: audit_log
     topic: home/audit
     publish: events
+    payload: record
   - collection: systems
     topic: home/beszel/systems
     publish: records
+    payload: both
   - collection: measurements
     topic: home/measurements
     publish: latest
+    payload: fields
     sort: -created,-id
 ```
 
 - `collection` is the PocketBase collection name.
 - `topic` is the MQTT base topic and must be unique. MQTT wildcards are rejected.
 - `publish` is one of `events`, `latest`, or `records`.
+- `payload` is `record`, `fields`, or `both`. It defaults to `record` for backwards compatibility.
 - `sort` is optional and only valid with `latest`. Its default is `-updated,-id`.
 
-Collections and topics must be unique. Version 1 intentionally does not support PocketBase filters or field projections; every payload remains a complete PocketBase record.
+`record` publishes the existing complete JSON payload. `fields` publishes every record field separately, including nested JSON object keys and array indices. `both` emits both representations. Field values are JSON-encoded scalars or empty JSON containers, and their topic path segments are URL-encoded when a source key contains MQTT-reserved characters.
+
+Collections and topics must be unique. Version 1 intentionally does not support PocketBase filters or field projections.

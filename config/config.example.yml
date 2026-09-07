@@ -1,4 +1,5 @@
 collections:
   - collection: systems
-    topic: dev/beszel/systems
+    topic: home/beszel/systems
     publish: records
+    payload: both

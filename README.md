@@ -14,7 +14,7 @@ cp config/config.example.yml config/config.yml
 docker compose up -d
 ```
 
-The included Beszel configuration publishes each current `systems` record to `home/beszel/systems/records/<record-id>`.
+The included Beszel configuration publishes each current `systems` record and its nested `info` JSON values below `home/beszel/systems/records/<record-id>`.
 
 ## Documentation
 

@@ -6,9 +6,9 @@ import type { PocketBaseEvent, PocketBaseRecord } from './pocketbase/pocketbase.
 import { PocketBaseService } from './pocketbase/pocketbase.service';
 
 const collections: CollectionConfig[] = [
-  { collection: 'events', publish: 'events', topic: 'home/events' },
-  { collection: 'latest', publish: 'latest', topic: 'home/latest' },
-  { collection: 'records', publish: 'records', topic: 'home/records' },
+  { collection: 'events', payload: 'both', publish: 'events', topic: 'home/events' },
+  { collection: 'latest', payload: 'both', publish: 'latest', topic: 'home/latest' },
+  { collection: 'records', payload: 'both', publish: 'records', topic: 'home/records' },
 ];
 
 jest.mock('~/config/env', () => ({
@@ -84,6 +84,7 @@ describe('BridgeService', () => {
     expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first', expect.stringContaining('first'), {
       retain: true,
     });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first/fields/value', '"first"', { retain: true });
 
     pocketbase.eventHandlers.get('events')?.({
       action: 'create',
@@ -96,7 +97,37 @@ describe('BridgeService', () => {
     await new Promise((resolve) => setImmediate(resolve));
 
     expect(mqtt.publish).toHaveBeenCalledWith('home/events/events/create', expect.stringContaining('event-id'));
+    expect(mqtt.publish).toHaveBeenCalledWith('home/events/events/create/event-id/fields/value', '"event-id"');
     expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first', null, { retain: true });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first/fields/value', null, { retain: true });
+  });
+
+  it('publishes nested JSON fields and clears no-longer-present retained fields', async () => {
+    const mqtt = createMqtt();
+    const pocketbase = createPocketBase();
+    const service = new BridgeService(mqtt as never, pocketbase as never);
+    await service.onModuleInit();
+
+    const updatedRecord: PocketBaseRecord = {
+      collectionId: 'collection',
+      collectionName: 'test',
+      created: '2026-01-04 00:00:00.000Z',
+      id: 'first',
+      updated: '2026-01-04 00:00:00.000Z',
+    };
+    pocketbase.eventHandlers.get('records')?.({
+      action: 'update',
+      record: { ...updatedRecord, info: { cpu: { usage: 42 } }, metadata: '{"network":{"rx":12}}' },
+    });
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first/fields/info/cpu/usage', '42', {
+      retain: true,
+    });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first/fields/metadata/network/rx', '12', {
+      retain: true,
+    });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first/fields/value', null, { retain: true });
   });
 
   it('refreshes the latest record only for non-retained get commands', async () => {

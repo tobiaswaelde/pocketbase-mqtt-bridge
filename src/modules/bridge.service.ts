@@ -2,11 +2,13 @@ import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nest
 import { CONFIG, type CollectionConfig } from '~/config/config';
 import { MqttService } from './mqtt/mqtt.service';
 import { type PocketBaseEvent, type PocketBaseRecord, PocketBaseService } from './pocketbase/pocketbase.service';
+import { flattenRecordFields } from './record-fields';
 
 @Injectable()
 export class BridgeService implements OnModuleDestroy, OnModuleInit {
   private readonly latestUpdated = new Map<string, string>();
   private readonly knownRecords = new Map<string, Set<string>>();
+  private readonly knownFieldTopics = new Map<string, Set<string>>();
   private readonly logger = new Logger(BridgeService.name);
   private readonly unsubscribe = new Set<() => void>();
   private destroyed = false;
@@ -69,7 +71,7 @@ export class BridgeService implements OnModuleDestroy, OnModuleInit {
   private async handleEvent(config: CollectionConfig, event: PocketBaseEvent) {
     try {
       if (config.publish === 'events') {
-        this.mqtt.publish(`${config.topic}/events/${event.action}`, JSON.stringify(event));
+        this.publishEvent(config, event);
         return;
       }
       if (config.publish === 'latest') {
@@ -96,7 +98,7 @@ export class BridgeService implements OnModuleDestroy, OnModuleInit {
     const record = await this.pocketbase.latest(config.collection, config.sort ?? '-updated,-id');
     if (!record) {
       this.latestUpdated.delete(config.collection);
-      this.mqtt.publish(`${config.topic}/latest`, null, { retain: true });
+      this.clearState(config, config.collection, `${config.topic}/latest`);
       return;
     }
     this.publishLatest(config, record);
@@ -106,7 +108,7 @@ export class BridgeService implements OnModuleDestroy, OnModuleInit {
     const records = await this.pocketbase.list(config.collection);
     const currentIds = new Set(records.map((record) => record.id));
     for (const id of this.knownRecords.get(config.collection) ?? [])
-      if (!currentIds.has(id)) this.mqtt.publish(`${config.topic}/records/${id}`, null, { retain: true });
+      if (!currentIds.has(id)) this.clearState(config, `${config.collection}/${id}`, `${config.topic}/records/${id}`);
     this.knownRecords.set(config.collection, currentIds);
     for (const record of records) this.publishRecord(config, record);
   }
@@ -114,7 +116,7 @@ export class BridgeService implements OnModuleDestroy, OnModuleInit {
   private publishRecordEvent(config: CollectionConfig, event: PocketBaseEvent) {
     if (event.action === 'delete') {
       this.knownRecords.get(config.collection)?.delete(event.record.id);
-      this.mqtt.publish(`${config.topic}/records/${event.record.id}`, null, { retain: true });
+      this.clearState(config, `${config.collection}/${event.record.id}`, `${config.topic}/records/${event.record.id}`);
       return;
     }
     this.knownRecords.get(config.collection)?.add(event.record.id);
@@ -124,14 +126,50 @@ export class BridgeService implements OnModuleDestroy, OnModuleInit {
   private publishLatest(config: CollectionConfig, record: PocketBaseRecord) {
     if (this.isStale(config.collection, record)) return;
     this.latestUpdated.set(config.collection, record.updated);
-    this.mqtt.publish(`${config.topic}/latest`, JSON.stringify(record), { retain: true });
+    this.publishState(config, config.collection, `${config.topic}/latest`, record);
   }
 
   private publishRecord(config: CollectionConfig, record: PocketBaseRecord) {
     const key = `${config.collection}/${record.id}`;
     if (this.isStale(key, record)) return;
     this.latestUpdated.set(key, record.updated);
-    this.mqtt.publish(`${config.topic}/records/${record.id}`, JSON.stringify(record), { retain: true });
+    this.publishState(config, key, `${config.topic}/records/${record.id}`, record);
+  }
+
+  private publishEvent(config: CollectionConfig, event: PocketBaseEvent) {
+    const baseTopic = `${config.topic}/events/${event.action}`;
+    if (this.includesRecord(config)) this.mqtt.publish(baseTopic, JSON.stringify(event));
+    if (this.includesFields(config))
+      for (const field of flattenRecordFields(event.record))
+        this.mqtt.publish(`${baseTopic}/${event.record.id}/fields/${field.path.join('/')}`, field.payload);
+  }
+
+  private publishState(config: CollectionConfig, key: string, baseTopic: string, record: PocketBaseRecord) {
+    if (this.includesRecord(config)) this.mqtt.publish(baseTopic, JSON.stringify(record), { retain: true });
+    if (!this.includesFields(config)) return;
+    const currentTopics = new Set<string>();
+    for (const field of flattenRecordFields(record)) {
+      const topic = `${baseTopic}/fields/${field.path.join('/')}`;
+      currentTopics.add(topic);
+      this.mqtt.publish(topic, field.payload, { retain: true });
+    }
+    for (const topic of this.knownFieldTopics.get(key) ?? [])
+      if (!currentTopics.has(topic)) this.mqtt.publish(topic, null, { retain: true });
+    this.knownFieldTopics.set(key, currentTopics);
+  }
+
+  private clearState(config: CollectionConfig, key: string, baseTopic: string) {
+    if (this.includesRecord(config)) this.mqtt.publish(baseTopic, null, { retain: true });
+    for (const topic of this.knownFieldTopics.get(key) ?? []) this.mqtt.publish(topic, null, { retain: true });
+    this.knownFieldTopics.delete(key);
+  }
+
+  private includesRecord(config: CollectionConfig) {
+    return config.payload !== 'fields';
+  }
+
+  private includesFields(config: CollectionConfig) {
+    return config.payload !== 'record';
   }
 
   private isStale(key: string, record: PocketBaseRecord) {
