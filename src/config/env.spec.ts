@@ -1,4 +1,4 @@
-import { normalizeEnvironment } from './environment';
+import { normalizeEnvironment, normalizePocketBaseUrl } from './environment';
 
 describe('normalizeEnvironment', () => {
   it('removes .env-style wrapping quotes from injected values', () => {
@@ -17,5 +17,9 @@ describe('normalizeEnvironment', () => {
 
   it('leaves unquoted values unchanged', () => {
     expect(normalizeEnvironment({ MQTT_PORT: '1883' })).toEqual({ MQTT_PORT: '1883' });
+  });
+
+  it('maps PocketBase dashboard URLs to the server root', () => {
+    expect(normalizePocketBaseUrl('https://pocketbase.example.test/_/')).toBe('https://pocketbase.example.test/');
   });
 });

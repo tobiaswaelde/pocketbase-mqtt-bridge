@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { cleanEnv, num, str, url } from 'envalid';
-import { normalizeEnvironment } from './environment';
+import { normalizeEnvironment, normalizePocketBaseUrl } from './environment';
 
 dotenv.config();
 
@@ -18,4 +18,7 @@ const environment = cleanEnv(normalizeEnvironment(process.env), {
   PORT: num({ default: 3000 }),
 });
 
-export const ENV = environment;
+export const ENV = {
+  ...environment,
+  POCKETBASE_URL: normalizePocketBaseUrl(environment.POCKETBASE_URL),
+};
