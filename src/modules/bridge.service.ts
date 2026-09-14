@@ -7,6 +7,7 @@ import { flattenRecordFields } from './record-fields';
 @Injectable()
 export class BridgeService implements OnModuleDestroy, OnModuleInit {
   private readonly latestUpdated = new Map<string, string>();
+  private readonly knownLatestGroups = new Map<string, Set<string>>();
   private readonly knownRecords = new Map<string, Set<string>>();
   private readonly knownFieldTopics = new Map<string, Set<string>>();
   private readonly logger = new Logger(BridgeService.name);
@@ -49,7 +50,11 @@ export class BridgeService implements OnModuleDestroy, OnModuleInit {
   private async start() {
     for (const config of CONFIG.collections) {
       this.unsubscribe.add(
-        await this.pocketbase.subscribe(config.collection, (event) => void this.handleEvent(config, event)),
+        await this.pocketbase.subscribe(
+          config.collection,
+          (event) => void this.handleEvent(config, event),
+          config.filter,
+        ),
       );
       if (config.publish === 'latest')
         this.unsubscribe.add(
@@ -59,7 +64,7 @@ export class BridgeService implements OnModuleDestroy, OnModuleInit {
         );
     }
     this.unsubscribe.add(await this.pocketbase.onConnect(() => void this.syncStatefulCollections()));
-    await this.syncStatefulCollections();
+    await this.syncInitialCollections();
   }
 
   private resetSubscriptions() {
@@ -90,18 +95,62 @@ export class BridgeService implements OnModuleDestroy, OnModuleInit {
     );
   }
 
+  private async syncInitialCollections() {
+    await Promise.all(CONFIG.collections.map((config) => this.syncInitialCollection(config)));
+  }
+
+  private async syncInitialCollection(config: CollectionConfig) {
+    if (config.publish !== 'events') {
+      await this.syncCollection(config);
+      return;
+    }
+    const records = await this.pocketbase.list(config.collection);
+    for (const record of records) this.publishEvent(config, { action: 'create', record });
+  }
+
   private syncCollection(config: CollectionConfig) {
     return config.publish === 'latest' ? this.syncLatest(config) : this.syncRecords(config);
   }
 
   private async syncLatest(config: CollectionConfig) {
-    const record = await this.pocketbase.latest(config.collection, config.sort ?? '-updated,-id');
+    if (config.groupBy) {
+      await this.syncLatestGroups(config);
+      return;
+    }
+    const record = await this.pocketbase.latest(config.collection, config.sort ?? '-updated,-id', config.filter);
     if (!record) {
       this.latestUpdated.delete(config.collection);
       this.clearState(config, config.collection, `${config.topic}/latest`);
       return;
     }
     this.publishLatest(config, record);
+  }
+
+  private async syncLatestGroups(config: CollectionConfig) {
+    const records = await this.pocketbase.list(config.collection, {
+      filter: config.filter,
+      sort: config.sort ?? '-updated,-id',
+    });
+    const currentKeys = new Set<string>();
+    for (const record of records) {
+      const group = record[config.groupBy!];
+      if (!['number', 'string'].includes(typeof group))
+        throw new Error(`Record ${record.id} has no scalar ${config.groupBy} field`);
+      const segment = encodeURIComponent(String(group)) || '%00';
+      const key = `${config.collection}/${segment}`;
+      if (currentKeys.has(key)) continue;
+      currentKeys.add(key);
+      if (this.isStale(key, record)) continue;
+      this.latestUpdated.set(key, record.updated);
+      this.publishState(config, key, `${config.topic}/latest/${segment}`, record);
+    }
+    for (const key of this.knownLatestGroups.get(config.collection) ?? []) {
+      if (currentKeys.has(key)) continue;
+      const segment = key.slice(config.collection.length + 1);
+      this.latestUpdated.delete(key);
+      this.clearState(config, key, `${config.topic}/latest/${segment}`);
+    }
+    this.knownLatestGroups.set(config.collection, currentKeys);
   }
 
   private async syncRecords(config: CollectionConfig) {

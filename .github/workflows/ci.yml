@@ -16,7 +16,7 @@ jobs:
       - name: Smoke-test health endpoint
         run: |
           cp config/config.example.yml /tmp/config.yml
-          docker run -d --name bridge-ci -e MQTT_HOST=127.0.0.1 -e MQTT_PORT=1 -e POCKETBASE_URL=http://127.0.0.1:9 -e POCKETBASE_API_KEY=ci-placeholder -e PORT=3000 -p 3000:3000 -v /tmp/config.yml:/app/config/config.yml:ro pocketbase-mqtt-bridge:ci
+          docker run -d --name bridge-ci -e MQTT_HOST=127.0.0.1 -e MQTT_PORT=1 -e POCKETBASE_URL=http://127.0.0.1:9 -e POCKETBASE_AUTH_COLLECTION=users -e POCKETBASE_USERNAME=ci -e POCKETBASE_PASSWORD=ci-placeholder -e PORT=3000 -p 3000:3000 -v /tmp/config.yml:/app/config/config.yml:ro pocketbase-mqtt-bridge:ci
           for _ in {1..20}; do curl --fail --silent http://127.0.0.1:3000/health && exit 0; sleep 1; done
           docker logs bridge-ci
           exit 1

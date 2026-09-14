@@ -6,6 +6,11 @@ import { z } from 'zod';
 export const collectionSchema = z
   .object({
     collection: z.string().regex(/^[A-Za-z0-9_-]+$/, 'collection must contain only letters, numbers, _ and -'),
+    filter: z.string().min(1).optional(),
+    groupBy: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]+$/, 'groupBy must name a top-level record field')
+      .optional(),
     payload: z.enum(['record', 'fields', 'both']).default('record'),
     publish: z.enum(['events', 'latest', 'records']),
     sort: z.string().min(1).optional(),
@@ -17,6 +22,18 @@ export const collectionSchema = z
   .superRefine((value, context) => {
     if (value.sort && value.publish !== 'latest')
       context.addIssue({ code: 'custom', path: ['sort'], message: 'sort is only supported for latest collections' });
+    if (value.filter && value.publish !== 'latest')
+      context.addIssue({
+        code: 'custom',
+        path: ['filter'],
+        message: 'filter is only supported for latest collections',
+      });
+    if (value.groupBy && value.publish !== 'latest')
+      context.addIssue({
+        code: 'custom',
+        path: ['groupBy'],
+        message: 'groupBy is only supported for latest collections',
+      });
   });
 
 export const configSchema = z

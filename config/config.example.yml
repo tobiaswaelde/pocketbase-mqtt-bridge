@@ -3,3 +3,25 @@ collections:
     topic: home/beszel/systems
     publish: records
     payload: both
+  - collection: system_details
+    topic: home/beszel/system-details
+    publish: records
+    payload: both
+  - collection: system_stats
+    topic: home/beszel/system-stats
+    publish: latest
+    payload: both
+    groupBy: system
+    filter: type = "1m"
+    sort: -created,-id
+  - collection: containers
+    topic: home/beszel/containers
+    publish: records
+    payload: both
+  - collection: container_stats
+    topic: home/beszel/container-stats
+    publish: latest
+    payload: both
+    groupBy: system
+    filter: type = "1m"
+    sort: -created,-id

@@ -1,5 +1,6 @@
 services:
   pocketbase-mqtt-bridge:
+    build: .
     image: ghcr.io/tobiaswaelde/pocketbase-mqtt-bridge:${IMAGE_TAG:-latest}
     restart: unless-stopped
     user: '${UID:-1000}:${GID:-1000}'

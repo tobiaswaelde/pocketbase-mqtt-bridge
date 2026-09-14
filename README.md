@@ -16,7 +16,7 @@ cp config/config.example.yml config/config.yml
 docker compose up -d
 ```
 
-The included Beszel configuration publishes each current `systems` record and its nested `info` JSON values below `home/beszel/systems/records/<record-id>`.
+The included Beszel configuration publishes current systems, system details, and containers as retained records. It also publishes the newest `system_stats` and `container_stats` one-minute sample per system without retaining historical samples.
 
 ## Documentation
 

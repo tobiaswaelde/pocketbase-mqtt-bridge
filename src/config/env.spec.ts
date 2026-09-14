@@ -34,8 +34,10 @@ describe('normalizeEnvironment', () => {
     process.env = {
       ...original,
       MQTT_HOST: '"mqtt.example.test"',
-      POCKETBASE_API_KEY: "'api-key'",
+      POCKETBASE_AUTH_COLLECTION: '_superusers',
+      POCKETBASE_PASSWORD: "'secret'",
       POCKETBASE_URL: 'https://pocketbase.example.test/_/',
+      POCKETBASE_USERNAME: "'bridge@example.test'",
     };
     jest.resetModules();
 
@@ -50,8 +52,10 @@ describe('normalizeEnvironment', () => {
       MQTT_HOST: 'mqtt.example.test',
       MQTT_PORT: 1883,
       MQTT_PROTOCOL: 'mqtt',
-      POCKETBASE_API_KEY: 'api-key',
+      POCKETBASE_AUTH_COLLECTION: '_superusers',
+      POCKETBASE_PASSWORD: 'secret',
       POCKETBASE_URL: 'https://pocketbase.example.test/',
+      POCKETBASE_USERNAME: 'bridge@example.test',
       PORT: 3000,
     });
     process.env = original;

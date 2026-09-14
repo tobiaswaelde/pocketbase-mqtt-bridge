@@ -11,6 +11,8 @@ describe('configSchema', () => {
           { collection: 'audit_log', publish: 'events', topic: 'home/pocketbase/audit' },
           {
             collection: 'systems',
+            filter: 'type = "1m"',
+            groupBy: 'system',
             payload: 'fields',
             publish: 'latest',
             sort: '-created,-id',
@@ -24,6 +26,8 @@ describe('configSchema', () => {
         { collection: 'audit_log', payload: 'record', publish: 'events', topic: 'home/pocketbase/audit' },
         {
           collection: 'systems',
+          filter: 'type = "1m"',
+          groupBy: 'system',
           payload: 'fields',
           publish: 'latest',
           sort: '-created,-id',
@@ -49,6 +53,9 @@ describe('configSchema', () => {
       ],
     },
     { collections: [{ collection: 'systems', publish: 'records', sort: '-updated', topic: 'home/systems' }] },
+    { collections: [{ collection: 'systems', filter: 'type = "1m"', publish: 'records', topic: 'home/systems' }] },
+    { collections: [{ collection: 'systems', groupBy: 'system', publish: 'records', topic: 'home/systems' }] },
+    { collections: [{ collection: 'systems', groupBy: 'invalid.path', publish: 'latest', topic: 'home/systems' }] },
     { collections: [{ collection: 'systems', payload: 'unknown', publish: 'records', topic: 'home/systems' }] },
   ];
 

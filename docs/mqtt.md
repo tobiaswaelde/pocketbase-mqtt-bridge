@@ -12,6 +12,8 @@ Payloads are UTF-8 JSON. State topics are retained so a new MQTT consumer receiv
 <topic>/events/delete
 ```
 
+At bridge startup, every existing record is read once and published as a non-retained `create` event. Reconnects do not replay existing records; only `latest` and `records` are resynchronized after an interruption.
+
 With `payload: record` or `payload: both`, each payload has this shape:
 
 ```json
@@ -29,7 +31,7 @@ With `payload: fields` or `payload: both`, each field in `record` is published s
 
 For example, a `record.info.cpu.usage` value is published to `<topic>/events/update/<record-id>/fields/info/cpu/usage`.
 
-Events are at-most-once across a PocketBase Realtime interruption. Use `latest` or `records` when a consumer needs an eventually resynchronized state view.
+After the startup snapshot, events are at-most-once across a PocketBase Realtime interruption. Use `latest` or `records` when a consumer needs an eventually resynchronized state view.
 
 ## Latest mode
 
@@ -39,6 +41,14 @@ Events are at-most-once across a PocketBase Realtime interruption. Use `latest` 
 <topic>/latest
 <topic>/get
 ```
+
+With `groupBy`, it stores the first sorted record for every distinct group value instead:
+
+```text
+<topic>/latest/<group-value>
+```
+
+This is suitable for time-series collections such as Beszel `system_stats`, where `groupBy: system`, `filter: type = "1m"`, and `sort: -created,-id` keep one current retained snapshot per system without publishing the history.
 
 `<topic>/latest` is retained when `payload` includes `record`. When `payload` includes `fields`, retained field values use this shape:
 

@@ -8,6 +8,15 @@ import { PocketBaseService } from './pocketbase/pocketbase.service';
 const collections: CollectionConfig[] = [
   { collection: 'events', payload: 'both', publish: 'events', topic: 'home/events' },
   { collection: 'latest', payload: 'both', publish: 'latest', topic: 'home/latest' },
+  {
+    collection: 'grouped',
+    filter: 'type = "1m"',
+    groupBy: 'system',
+    payload: 'both',
+    publish: 'latest',
+    sort: '-created,-id',
+    topic: 'home/grouped',
+  },
   { collection: 'records', payload: 'both', publish: 'records', topic: 'home/records' },
 ];
 
@@ -17,8 +26,10 @@ jest.mock('~/config/env', () => ({
     MQTT_HOST: 'mqtt.test',
     MQTT_PORT: 1883,
     MQTT_PROTOCOL: 'mqtt',
-    POCKETBASE_API_KEY: 'test-token',
+    POCKETBASE_AUTH_COLLECTION: 'users',
+    POCKETBASE_PASSWORD: 'test-password',
     POCKETBASE_URL: 'https://pocketbase.test',
+    POCKETBASE_USERNAME: 'bridge',
   },
 }));
 
@@ -48,7 +59,15 @@ function createPocketBase() {
     getConnectHandler: () => connectHandler,
     eventHandlers,
     latest: jest.fn(async () => record('latest-id', '2026-01-02 00:00:00.000Z')),
-    list: jest.fn(async () => [record('first', '2026-01-01 00:00:00.000Z')]),
+    list: jest.fn(async (collection: string) =>
+      collection === 'grouped'
+        ? [
+            { ...record('new-alpha', '2026-01-03 00:00:00.000Z'), system: 'alpha' },
+            { ...record('old-alpha', '2026-01-02 00:00:00.000Z'), system: 'alpha' },
+            { ...record('new-beta', '2026-01-01 00:00:00.000Z'), system: 'beta' },
+          ]
+        : [record('first', '2026-01-01 00:00:00.000Z')],
+    ),
     onConnect: jest.fn(async (handler: () => void) => {
       connectHandler = handler;
       return jest.fn();
@@ -66,6 +85,7 @@ function internals(service: BridgeService) {
     handleEvent: (config: CollectionConfig, event: PocketBaseEvent) => Promise<void>;
     initialize: () => Promise<void>;
     knownFieldTopics: Map<string, Set<string>>;
+    knownLatestGroups: Map<string, Set<string>>;
     knownRecords: Map<string, Set<string>>;
     latestUpdated: Map<string, string>;
     clearState: (config: CollectionConfig, key: string, topic: string) => void;
@@ -96,7 +116,19 @@ describe('BridgeService', () => {
     await service.onModuleInit();
 
     expect(mqtt.subscribe).toHaveBeenCalledWith('home/latest/get', expect.any(Function));
+    expect(pocketbase.subscribe).toHaveBeenCalledWith('grouped', expect.any(Function), 'type = "1m"');
+    expect(mqtt.publish).toHaveBeenCalledWith('home/events/events/create', expect.stringContaining('first'));
+    expect(mqtt.publish).toHaveBeenCalledWith('home/events/events/create/first/fields/value', '"first"');
     expect(mqtt.publish).toHaveBeenCalledWith('home/latest/latest', expect.stringContaining('latest-id'), {
+      retain: true,
+    });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/grouped/latest/alpha', expect.stringContaining('new-alpha'), {
+      retain: true,
+    });
+    expect(mqtt.publish).not.toHaveBeenCalledWith('home/grouped/latest/alpha', expect.stringContaining('old-alpha'), {
+      retain: true,
+    });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/grouped/latest/beta', expect.stringContaining('new-beta'), {
       retain: true,
     });
     expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first', expect.stringContaining('first'), {
@@ -174,7 +206,9 @@ describe('BridgeService', () => {
     await new Promise((resolve) => setImmediate(resolve));
 
     expect(pocketbase.latest).toHaveBeenCalledTimes(2);
-    expect(pocketbase.list).toHaveBeenCalledTimes(2);
+    expect(pocketbase.list.mock.calls.filter(([collection]) => collection === 'events')).toHaveLength(1);
+    expect(pocketbase.list.mock.calls.filter(([collection]) => collection === 'grouped')).toHaveLength(2);
+    expect(pocketbase.list.mock.calls.filter(([collection]) => collection === 'records')).toHaveLength(2);
   });
 
   it('clears state that is absent from the latest result or a records resynchronization', async () => {
@@ -206,6 +240,40 @@ describe('BridgeService', () => {
 
     expect(mqtt.publish).toHaveBeenCalledWith('home/empty/latest/fields/value', null, { retain: true });
     expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/removed', null, { retain: true });
+  });
+
+  it('publishes and clears the latest record per configured group', async () => {
+    const mqtt = createMqtt();
+    const pocketbase = createPocketBase();
+    const service = new BridgeService(mqtt as never, pocketbase as never);
+    const grouped: CollectionConfig = {
+      collection: 'stats',
+      filter: 'type = "1m"',
+      groupBy: 'system',
+      payload: 'both',
+      publish: 'latest',
+      topic: 'home/stats',
+    };
+    const privateService = internals(service);
+    pocketbase.list.mockResolvedValueOnce([
+      { ...record('empty', '2026-01-03 00:00:00.000Z'), system: '' },
+      { ...record('numeric', '2026-01-02 00:00:00.000Z'), system: 42 },
+    ]);
+
+    await privateService.syncLatest(grouped);
+    pocketbase.list.mockResolvedValueOnce([]);
+    await privateService.syncLatest(grouped);
+    pocketbase.list.mockResolvedValueOnce([record('invalid', '2026-01-04 00:00:00.000Z')]);
+
+    await expect(privateService.syncLatest(grouped)).rejects.toThrow('has no scalar system field');
+    expect(mqtt.publish).toHaveBeenCalledWith('home/stats/latest/%00', expect.stringContaining('empty'), {
+      retain: true,
+    });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/stats/latest/42', expect.stringContaining('numeric'), {
+      retain: true,
+    });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/stats/latest/%00', null, { retain: true });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/stats/latest/42', null, { retain: true });
   });
 
   it('honours record-only and field-only payloads and ignores stale records', () => {

@@ -8,7 +8,7 @@ The Beszel example configuration monitors `systems`: its `info` JSON holds the l
 
 ## Configuration and MQTT Contract
 
-- Load all connection details and secrets exclusively from `.env`: `MQTT_PROTOCOL`, `MQTT_HOST`, `MQTT_PORT`, `MQTT_CLIENT_ID`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `POCKETBASE_URL`, and `POCKETBASE_API_KEY`. Document them in `.env.example` and ignore the actual `.env` file.
+- Load all connection details and secrets exclusively from `.env`: `MQTT_PROTOCOL`, `MQTT_HOST`, `MQTT_PORT`, `MQTT_CLIENT_ID`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `POCKETBASE_URL`, `POCKETBASE_AUTH_COLLECTION`, `POCKETBASE_USERNAME`, and `POCKETBASE_PASSWORD`. Document them in `.env.example` and ignore the actual `.env` file.
 - Define only the monitored collections, their MQTT base topics, and publishing modes in `config/config.yml`:
 
   ```yaml
@@ -26,11 +26,11 @@ The Beszel example configuration monitors `systems`: its `info` JSON holds the l
 - In `latest` mode, publish the newest record at startup. Creates and updates refresh it; deletes trigger a new lookup and clear the topic when the collection is empty.
 - For each `latest` collection, any non-retained publish to `<topic>/get` fetches the newest record again and updates `<topic>/latest`. Ignore retained commands.
 - Keep state payloads as complete PocketBase records in JSON. Event payloads include `action` and `record`, keeping the contract generic for arbitrary collections.
-- Validate unique collections and topics, safe topic segments, allowed modes, and optional sort expressions with Zod. Version 1 deliberately excludes filtering and field projection.
+- Validate unique collections and topics, safe topic segments, allowed modes, optional sort expressions, and optional `latest` grouping/filtering with Zod. Field projection remains excluded.
 
 ## Runtime Behavior
 
-- Authenticate with PocketBase through `POCKETBASE_API_KEY` as an authorization token and never log it. The configured service account requires at least list and view access to every monitored collection.
+- Authenticate through the PocketBase `users` collection with username and password and renew the session periodically. Never log credentials. The configured service account requires at least list and view access to every monitored collection.
 - Create a PocketBase Realtime `*` subscription for every configured collection to receive create, update, and delete events.
 - Subscribe before retrieving the initial snapshot so that changes are not missed during startup; when data races, prefer the record with the newer `updated` value.
 - On reconnect, restore subscriptions and resynchronize stateful modes (`latest` and `records`). `events` intentionally remain at-most-once; interruptions are logged and documented.

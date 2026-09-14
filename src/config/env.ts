@@ -13,8 +13,10 @@ const environment = cleanEnv(normalizeEnvironment(process.env), {
   MQTT_PORT: num({ default: 1883 }),
   MQTT_PROTOCOL: str({ choices: ['mqtt', 'mqtts'], default: 'mqtt' }),
   MQTT_USERNAME: str({ default: undefined }),
-  POCKETBASE_API_KEY: str(),
+  POCKETBASE_AUTH_COLLECTION: str({ choices: ['users', '_superusers'], default: 'users' }),
+  POCKETBASE_PASSWORD: str(),
   POCKETBASE_URL: url(),
+  POCKETBASE_USERNAME: str(),
   PORT: num({ default: 3000 }),
 });
 

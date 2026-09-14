@@ -12,10 +12,12 @@ MQTT_CLIENT_ID=pocketbase-mqtt-bridge
 MQTT_USERNAME=mqtt-user
 MQTT_PASSWORD=change-me
 POCKETBASE_URL=https://pocketbase.example.net
-POCKETBASE_API_KEY=replace-with-pocketbase-api-token
+POCKETBASE_AUTH_COLLECTION=users
+POCKETBASE_USERNAME=bridge@example.net
+POCKETBASE_PASSWORD=change-me
 ```
 
-`POCKETBASE_API_KEY` is sent as the PocketBase authorization token. Use a dedicated, read-only account or token with List and View access to every configured collection. Do not commit `.env`, paste it into issue reports, or place credentials in `config.yml`.
+The bridge signs in through the PocketBase auth collection selected by `POCKETBASE_AUTH_COLLECTION` and renews its session every 30 minutes. It defaults to `users`; use `_superusers` for PocketBase superuser credentials. Prefer a dedicated, read-only user whenever possible. Do not commit `.env`, paste credentials into issue reports, or place them in `config.yml`.
 
 Leave `MQTT_CLIENT_ID` empty to generate a UUID at startup. `HOST`, `PORT`, and `CORS_ORIGIN` configure the HTTP health endpoint.
 
@@ -36,6 +38,8 @@ collections:
     publish: latest
     payload: fields
     sort: -created,-id
+    groupBy: system
+    filter: type = "1m"
 ```
 
 - `collection` is the PocketBase collection name.
@@ -43,7 +47,9 @@ collections:
 - `publish` is one of `events`, `latest`, or `records`.
 - `payload` is `record`, `fields`, or `both`. It defaults to `record` for backwards compatibility.
 - `sort` is optional and only valid with `latest`. Its default is `-updated,-id`.
+- `groupBy` is optional and only valid with `latest`. It publishes the newest record separately for every distinct value of the named top-level field.
+- `filter` is optional and only valid with `latest`. It is passed to PocketBase when selecting the current record or records.
 
 `record` publishes the existing complete JSON payload. `fields` publishes every record field separately, including nested JSON object keys. Scalar arrays remain one JSON-array value, while arrays containing objects use array indices as topic segments. `both` emits both representations. Field values are JSON-encoded scalars or empty JSON containers, and their topic path segments are URL-encoded when a source key contains MQTT-reserved characters.
 
-Collections and topics must be unique. Version 1 intentionally does not support PocketBase filters or field projections.
+Collections and topics must be unique. Field projections are not supported.
