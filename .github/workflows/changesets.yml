@@ -30,11 +30,13 @@ jobs:
       - id: tag
         shell: bash
         run: |
-          if git diff --quiet HEAD^ HEAD -- package.json; then
+          PREVIOUS_VERSION="$(git show HEAD^:package.json | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).version')"
+          VERSION="$(node -p 'require("./package.json").version')"
+          if [ "$PREVIOUS_VERSION" = "$VERSION" ]; then
             echo 'created=false' >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          TAG="v$(node -p 'require("./package.json").version')"
+          TAG="v${VERSION}"
           if git ls-remote --exit-code --tags origin "refs/tags/${TAG}"; then
             echo 'created=false' >> "$GITHUB_OUTPUT"
             exit 0
