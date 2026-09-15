@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+### Patch Changes
+
+- [`e826f6c`](https://github.com/tobiaswaelde/pocketbase-mqtt-bridge/commit/e826f6c07d06909f3ad300d2916c625127a3dd1a) Thanks [@tobiaswaelde](https://github.com/tobiaswaelde)! - Publish existing event records at startup, authenticate with renewable PocketBase username/password sessions, and support filtered latest snapshots grouped by a record field.
+
 ## 0.1.0
 
 ### Minor Changes
