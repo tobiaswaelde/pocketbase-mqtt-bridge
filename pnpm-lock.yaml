@@ -30,8 +30,8 @@ importers:
         specifier: ^5.3.0
         version: 5.4.1
       mqtt:
-        specifier: ^5.15.2
-        version: 5.15.2(supports-color@8.1.1)
+        specifier: ^5.16.0
+        version: 5.16.0(supports-color@8.1.1)
       pocketbase:
         specifier: ^0.28.1
         version: 0.28.1
@@ -1336,9 +1336,6 @@ packages:
   '@types/mdurl@2.0.0':
     resolution: {integrity: sha512-RGdgjQUZba5p6QEFAVx2OGb8rQDL/cPRG7GiedRzMcJ1tYnUANBncjbSB1NRGwbvjcPeikRABz2nshyPk1bhWg==}
 
-  '@types/node@26.4.1':
-    resolution: {integrity: sha512-k97ENvZWtvA6yqz5/FS6a7duDgOPEeOQOc2iKS/nY6mX6qJUKtLnWzQS+Xj6tXweyj6ZcTAK2Qecetnvi9nCLA==}
-
   '@types/node@26.5.1':
     resolution: {integrity: sha512-CzNm2FezW4VR/LjG6yUdiEgLE/rAQ9Slj5gCu/C2VrdcW7I0ahNZ8DRbHT7zOZ6r3ONgd/bsQIeSaoDGrd1C6g==}
 
@@ -2556,9 +2553,6 @@ packages:
   jju@1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
 
-  js-sdsl@4.3.0:
-    resolution: {integrity: sha512-mifzlm2+5nZ+lEcLJMoBK0/IH/bDg8XnJfd/Wq6IP+xoCjLZsTOnV2QpxlVbX9bMnkl5PdEjNtBJ9Cj1NjifhQ==}
-
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -2728,8 +2722,8 @@ packages:
   mqtt-packet@9.0.2:
     resolution: {integrity: sha512-MvIY0B8/qjq7bKxdN1eD+nrljoeaai+qjLJgfRn3TiMuz0pamsIWY2bFODPZMSNmabsLANXsLl4EMoWvlaTZWA==}
 
-  mqtt@5.15.2:
-    resolution: {integrity: sha512-VWZU2CSUY3U3oN0PSBRDE5SNsFi4zqqNeQ/uv3pZWqY3CrBXD/dhd0ZLjlsk5YnebGlrapi4lRVNJPUNQ5aZ3w==}
+  mqtt@5.16.0:
+    resolution: {integrity: sha512-G0VsEtuJz5sJUgZJaaADMVfW7SIFPzkIuHR+d6rk+tBeSwdCfd9BaIRycRfd2AbyFDEmLlFM+SDQeti/+IbOnw==}
     engines: {node: '>=16.0.0'}
     hasBin: true
 
@@ -2777,9 +2771,6 @@ packages:
   npm-run-path@4.0.1:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
     engines: {node: '>=8'}
-
-  number-allocator@1.0.14:
-    resolution: {integrity: sha512-OrL44UTVAvkKdOdRQZIJpLkAdjXGTRda052sN4sO77bKEzYYqWKMBjQvrJFzqygI99gL6Z4u2xctPW1tB8ErvA==}
 
   object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
@@ -3306,9 +3297,6 @@ packages:
   uint8array-extras@1.5.0:
     resolution: {integrity: sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A==}
     engines: {node: '>=18'}
-
-  undici-types@8.3.0:
-    resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
@@ -4283,7 +4271,7 @@ snapshots:
 
   '@jest/pattern@30.5.0':
     dependencies:
-      '@types/node': 26.4.1
+      '@types/node': 26.5.1
       jest-regex-util: 30.5.0
 
   '@jest/reporters@30.5.1(supports-color@8.1.1)':
@@ -4371,7 +4359,7 @@ snapshots:
       '@jest/schemas': 30.5.0
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 26.4.1
+      '@types/node': 26.5.1
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -4734,10 +4722,6 @@ snapshots:
       '@types/unist': 3.0.3
 
   '@types/mdurl@2.0.0': {}
-
-  '@types/node@26.4.1':
-    dependencies:
-      undici-types: 8.3.0
 
   '@types/node@26.5.1':
     dependencies:
@@ -6014,7 +5998,7 @@ snapshots:
     dependencies:
       '@jest/types': 30.5.1
       '@parcel/watcher': 2.6.0
-      '@types/node': 26.4.1
+      '@types/node': 26.5.1
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       fdir: 6.5.0(picomatch@4.0.7)
@@ -6159,7 +6143,7 @@ snapshots:
   jest-util@30.5.1:
     dependencies:
       '@jest/types': 30.5.1
-      '@types/node': 26.4.1
+      '@types/node': 26.5.1
       chalk: 4.1.2
       ci-info: 4.4.0
       graceful-fs: 4.2.11
@@ -6187,7 +6171,7 @@ snapshots:
 
   jest-worker@30.5.1:
     dependencies:
-      '@types/node': 26.4.1
+      '@types/node': 26.5.1
       '@ungap/structured-clone': 1.4.0
       jest-util: 30.5.1
       merge-stream: 2.0.0
@@ -6207,8 +6191,6 @@ snapshots:
       - ts-node
 
   jju@1.4.0: {}
-
-  js-sdsl@4.3.0: {}
 
   js-tokens@4.0.0: {}
 
@@ -6360,7 +6342,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  mqtt@5.15.2(supports-color@8.1.1):
+  mqtt@5.16.0(supports-color@8.1.1):
     dependencies:
       '@types/readable-stream': 4.0.24
       '@types/ws': 8.18.1
@@ -6371,7 +6353,6 @@ snapshots:
       lru-cache: 10.4.3
       minimist: 1.2.8
       mqtt-packet: 9.0.2(supports-color@8.1.1)
-      number-allocator: 1.0.14(supports-color@8.1.1)
       readable-stream: 4.7.0
       rfdc: 1.4.1
       socks: 2.8.10
@@ -6415,13 +6396,6 @@ snapshots:
   npm-run-path@4.0.1:
     dependencies:
       path-key: 3.1.1
-
-  number-allocator@1.0.14(supports-color@8.1.1):
-    dependencies:
-      debug: 4.4.3(supports-color@8.1.1)
-      js-sdsl: 4.3.0
-    transitivePeerDependencies:
-      - supports-color
 
   object-assign@4.1.1: {}
 
@@ -6945,8 +6919,6 @@ snapshots:
       '@lukeed/csprng': 1.1.0
 
   uint8array-extras@1.5.0: {}
-
-  undici-types@8.3.0: {}
 
   undici-types@8.9.0: {}
 
