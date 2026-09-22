@@ -118,7 +118,7 @@ describe('BridgeService', () => {
     expect(mqtt.subscribe).toHaveBeenCalledWith('home/latest/get', expect.any(Function));
     expect(pocketbase.subscribe).toHaveBeenCalledWith('grouped', expect.any(Function), 'type = "1m"');
     expect(mqtt.publish).toHaveBeenCalledWith('home/events/events/create', expect.stringContaining('first'));
-    expect(mqtt.publish).toHaveBeenCalledWith('home/events/events/create/first/fields/value', '"first"');
+    expect(mqtt.publish).toHaveBeenCalledWith('home/events/events/create/first/fields/value', 'first');
     expect(mqtt.publish).toHaveBeenCalledWith('home/latest/latest', expect.stringContaining('latest-id'), {
       retain: true,
     });
@@ -134,7 +134,7 @@ describe('BridgeService', () => {
     expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first', expect.stringContaining('first'), {
       retain: true,
     });
-    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first/fields/value', '"first"', { retain: true });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first/fields/value', 'first', { retain: true });
 
     pocketbase.eventHandlers.get('events')?.({
       action: 'create',
@@ -147,7 +147,7 @@ describe('BridgeService', () => {
     await new Promise((resolve) => setImmediate(resolve));
 
     expect(mqtt.publish).toHaveBeenCalledWith('home/events/events/create', expect.stringContaining('event-id'));
-    expect(mqtt.publish).toHaveBeenCalledWith('home/events/events/create/event-id/fields/value', '"event-id"');
+    expect(mqtt.publish).toHaveBeenCalledWith('home/events/events/create/event-id/fields/value', 'event-id');
     expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first', null, { retain: true });
     expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first/fields/value', null, { retain: true });
   });
@@ -304,8 +304,8 @@ describe('BridgeService', () => {
     expect(mqtt.publish).toHaveBeenCalledWith('home/record/records/one', expect.stringContaining('"one"'), {
       retain: true,
     });
-    expect(mqtt.publish).not.toHaveBeenCalledWith('home/record/records/one/fields/value', '"one"', { retain: true });
-    expect(mqtt.publish).toHaveBeenCalledWith('home/fields/events/create/one/fields/value', '"one"');
+    expect(mqtt.publish).not.toHaveBeenCalledWith('home/record/records/one/fields/value', 'one', { retain: true });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/fields/events/create/one/fields/value', 'one');
     expect(mqtt.publish).not.toHaveBeenCalledWith('home/fields/events/create', expect.any(String));
     expect(mqtt.publish).toHaveBeenCalledWith('home/record/events/create', expect.stringContaining('"one"'));
     expect(mqtt.publish.mock.calls.filter(([topic]) => topic === 'home/record/records/one')).toHaveLength(2);

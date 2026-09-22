@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "private": true,
   "description": "PocketBase MQTT Bridge publishes PocketBase collections to MQTT.",
-  "packageManager": "pnpm@11.24.0",
+  "packageManager": "pnpm@12.5.1+sha512.e3f305bc784a2bc89f5ad3b6138889470fae8d2af5f36b61216ec91c2c3d64089775f9de38aac331044ea40f245cb0d5666392dfdf65824e1907ef6a2c62de5f",
   "engines": {
     "node": ">=24.18.0"
   },
@@ -20,36 +20,36 @@
     "changeset": "changeset"
   },
   "dependencies": {
-    "@nestjs/common": "^11.2.1",
-    "@nestjs/core": "^11.2.1",
-    "@nestjs/platform-express": "^11.2.1",
-    "dotenv": "^17.4.2",
+    "@nestjs/common": "^11.2.5",
+    "@nestjs/core": "^11.2.5",
+    "@nestjs/platform-express": "^11.2.5",
+    "dotenv": "^18.0.2",
     "envalid": "^8.2.0",
-    "eventsource": "^5.1.1",
-    "js-yaml": "^5.3.0",
-    "mqtt": "^5.15.2",
+    "eventsource": "^5.1.2",
+    "js-yaml": "^5.4.2",
+    "mqtt": "^5.16.0",
     "pocketbase": "^0.28.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^1.0.0",
-    "@changesets/cli": "^3.0.1",
-    "@nestjs/testing": "^11.2.1",
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
+    "@nestjs/testing": "^11.2.5",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.5.1",
+    "@types/node": "^26.6.2",
     "@vercel/ncc": "^0.45.0",
-    "eslint": "^10.9.1",
+    "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
-    "jest": "^30.4.2",
-    "prettier": "^3.9.6",
+    "jest": "^30.5.2",
+    "prettier": "^3.9.8",
     "prettier-plugin-organize-imports": "^4.3.0",
     "ts-jest": "^29.4.12",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.15",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "typescript-eslint": "^8.70.0",
+    "typescript-eslint": "^8.70.1",
     "vitepress": "^1.6.4",
-    "zod": "^4.6.2"
+    "zod": "^4.6.5"
   }
 }

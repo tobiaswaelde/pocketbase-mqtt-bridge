@@ -16,10 +16,10 @@ describe('flattenRecordFields', () => {
     ).toEqual([
       { path: ['info', 'cpu', 'usage'], payload: '42' },
       { path: ['info', 'disks'], payload: '["nvme0n1"]' },
-      { path: ['info', 'interfaces', '0', 'name'], payload: '"eth0"' },
+      { path: ['info', 'interfaces', '0', 'name'], payload: 'eth0' },
       { path: ['info', 'interfaces', '0', 'rx'], payload: '12' },
       { path: ['metadata', 'network', 'rx'], payload: '12' },
-      { path: ['name'], payload: '"host-a"' },
+      { path: ['name'], payload: 'host-a' },
       { path: ['tags'], payload: '["cpu","memory"]' },
     ]);
   });
@@ -42,10 +42,10 @@ describe('flattenRecordFields', () => {
         omitted: undefined,
       }),
     ).toEqual([
-      { path: ['%00'], payload: '"empty-key"' },
-      { path: ['invalid'], payload: '"{invalid"' },
+      { path: ['%00'], payload: 'empty-key' },
+      { path: ['invalid'], payload: '{invalid' },
       { path: ['mixed', '0', 'id'], payload: '1' },
-      { path: ['mixed', '1'], payload: '"scalar"' },
+      { path: ['mixed', '1'], payload: 'scalar' },
     ]);
   });
 });

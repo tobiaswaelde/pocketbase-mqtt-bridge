@@ -1,6 +1,6 @@
 # MQTT contract
 
-Payloads are UTF-8 JSON. State topics are retained so a new MQTT consumer receives the most recently published state immediately. Each collection's `payload` setting selects complete records, field topics, or both.
+Complete records are UTF-8 JSON. Individual string fields are UTF-8 text without surrounding quotes; other individual field values use their JSON representation. State topics are retained so a new MQTT consumer receives the most recently published state immediately. Each collection's `payload` setting selects complete records, field topics, or both.
 
 ## Events mode
 

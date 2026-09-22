@@ -28,7 +28,7 @@ function appendField(fields: RecordField[], path: string[], value: unknown) {
 }
 
 function addField(fields: RecordField[], path: string[], value: unknown) {
-  const payload = JSON.stringify(value);
+  const payload = typeof value === 'string' ? value : JSON.stringify(value);
   if (payload !== undefined) fields.push({ path: path.map(encodeTopicSegment), payload });
 }
 

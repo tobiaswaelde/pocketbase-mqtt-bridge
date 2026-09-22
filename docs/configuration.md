@@ -50,6 +50,6 @@ collections:
 - `groupBy` is optional and only valid with `latest`. It publishes the newest record separately for every distinct value of the named top-level field.
 - `filter` is optional and only valid with `latest`. It is passed to PocketBase when selecting the current record or records.
 
-`record` publishes the existing complete JSON payload. `fields` publishes every record field separately, including nested JSON object keys. Scalar arrays remain one JSON-array value, while arrays containing objects use array indices as topic segments. `both` emits both representations. Field values are JSON-encoded scalars or empty JSON containers, and their topic path segments are URL-encoded when a source key contains MQTT-reserved characters.
+`record` publishes the existing complete JSON payload. `fields` publishes every record field separately, including nested JSON object keys. String fields are published without surrounding quotes. Other scalar values, scalar arrays, and empty containers retain their JSON representation, while arrays containing objects use array indices as topic segments. `both` emits both representations. Field topic path segments are URL-encoded when a source key contains MQTT-reserved characters.
 
 Collections and topics must be unique. Field projections are not supported.
