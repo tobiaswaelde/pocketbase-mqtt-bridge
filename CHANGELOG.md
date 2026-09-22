@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+### Patch Changes
+
+- [`ae9731c`](https://github.com/tobiaswaelde/pocketbase-mqtt-bridge/commit/ae9731ca971a9692b633119bbcbf28dd273de72c) Thanks [@tobiaswaelde](https://github.com/tobiaswaelde)! - Publish individual string field values to MQTT without surrounding JSON quotes.
+
 ## 0.1.1
 
 ### Patch Changes
