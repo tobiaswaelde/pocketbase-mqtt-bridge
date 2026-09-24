@@ -13,6 +13,7 @@ export const collectionSchema = z
       .optional(),
     payload: z.enum(['record', 'fields', 'both']).default('record'),
     publish: z.enum(['events', 'latest', 'records']),
+    publishIds: z.boolean().optional(),
     sort: z.string().min(1).optional(),
     topic: z
       .string()
@@ -33,6 +34,12 @@ export const collectionSchema = z
         code: 'custom',
         path: ['groupBy'],
         message: 'groupBy is only supported for latest collections',
+      });
+    if (value.publishIds !== undefined && value.publish !== 'records')
+      context.addIssue({
+        code: 'custom',
+        path: ['publishIds'],
+        message: 'publishIds is only supported for records collections',
       });
   });
 

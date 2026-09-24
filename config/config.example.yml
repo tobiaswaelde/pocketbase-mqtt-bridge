@@ -3,6 +3,7 @@ collections:
     topic: home/beszel/systems
     publish: records
     payload: both
+    publishIds: true
   - collection: system_details
     topic: home/beszel/system-details
     publish: records

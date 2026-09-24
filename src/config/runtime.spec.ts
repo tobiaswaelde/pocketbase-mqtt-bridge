@@ -18,7 +18,13 @@ describe('configSchema', () => {
             sort: '-created,-id',
             topic: 'home/pocketbase/systems',
           },
-          { collection: 'users', payload: 'both', publish: 'records', topic: 'home/pocketbase/users' },
+          {
+            collection: 'users',
+            payload: 'both',
+            publish: 'records',
+            publishIds: true,
+            topic: 'home/pocketbase/users',
+          },
         ],
       }),
     ).toEqual({
@@ -33,7 +39,13 @@ describe('configSchema', () => {
           sort: '-created,-id',
           topic: 'home/pocketbase/systems',
         },
-        { collection: 'users', payload: 'both', publish: 'records', topic: 'home/pocketbase/users' },
+        {
+          collection: 'users',
+          payload: 'both',
+          publish: 'records',
+          publishIds: true,
+          topic: 'home/pocketbase/users',
+        },
       ],
     });
   });
@@ -56,6 +68,7 @@ describe('configSchema', () => {
     { collections: [{ collection: 'systems', filter: 'type = "1m"', publish: 'records', topic: 'home/systems' }] },
     { collections: [{ collection: 'systems', groupBy: 'system', publish: 'records', topic: 'home/systems' }] },
     { collections: [{ collection: 'systems', groupBy: 'invalid.path', publish: 'latest', topic: 'home/systems' }] },
+    { collections: [{ collection: 'systems', publish: 'latest', publishIds: true, topic: 'home/systems' }] },
     { collections: [{ collection: 'systems', payload: 'unknown', publish: 'records', topic: 'home/systems' }] },
   ];
 

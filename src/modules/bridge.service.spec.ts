@@ -17,7 +17,7 @@ const collections: CollectionConfig[] = [
     sort: '-created,-id',
     topic: 'home/grouped',
   },
-  { collection: 'records', payload: 'both', publish: 'records', topic: 'home/records' },
+  { collection: 'records', payload: 'both', publish: 'records', publishIds: true, topic: 'home/records' },
 ];
 
 jest.mock('~/config/env', () => ({
@@ -92,6 +92,7 @@ function internals(service: BridgeService) {
     publishEvent: (config: CollectionConfig, event: PocketBaseEvent) => void;
     publishLatest: (config: CollectionConfig, record: PocketBaseRecord) => void;
     publishRecord: (config: CollectionConfig, record: PocketBaseRecord) => void;
+    publishRecordIds: (config: CollectionConfig) => void;
     publishState: (config: CollectionConfig, key: string, topic: string, record: PocketBaseRecord) => void;
     syncLatest: (config: CollectionConfig) => Promise<void>;
     syncRecords: (config: CollectionConfig) => Promise<void>;
@@ -135,6 +136,7 @@ describe('BridgeService', () => {
       retain: true,
     });
     expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first/fields/value', 'first', { retain: true });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records', '["first"]', { retain: true });
 
     pocketbase.eventHandlers.get('events')?.({
       action: 'create',
@@ -150,6 +152,22 @@ describe('BridgeService', () => {
     expect(mqtt.publish).toHaveBeenCalledWith('home/events/events/create/event-id/fields/value', 'event-id');
     expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first', null, { retain: true });
     expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/first/fields/value', null, { retain: true });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records', '[]', { retain: true });
+  });
+
+  it('updates the retained record ID array after create events', async () => {
+    const mqtt = createMqtt();
+    const pocketbase = createPocketBase();
+    const service = new BridgeService(mqtt as never, pocketbase as never);
+    await service.onModuleInit();
+
+    pocketbase.eventHandlers.get('records')?.({
+      action: 'create',
+      record: record('second', '2026-01-04 00:00:00.000Z'),
+    });
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records', '["first","second"]', { retain: true });
   });
 
   it('publishes nested JSON fields and clears no-longer-present retained fields', async () => {
@@ -237,9 +255,11 @@ describe('BridgeService', () => {
     pocketbase.list.mockResolvedValueOnce([]);
     await privateService.syncRecords(records);
     privateService.clearState(fieldsLatest, 'missing', 'home/empty/missing');
+    privateService.publishRecordIds({ ...records, collection: 'missing', publishIds: true });
 
     expect(mqtt.publish).toHaveBeenCalledWith('home/empty/latest/fields/value', null, { retain: true });
     expect(mqtt.publish).toHaveBeenCalledWith('home/records/records/removed', null, { retain: true });
+    expect(mqtt.publish).toHaveBeenCalledWith('home/records/records', '[]', { retain: true });
   });
 
   it('publishes and clears the latest record per configured group', async () => {

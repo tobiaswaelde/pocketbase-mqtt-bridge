@@ -33,6 +33,7 @@ collections:
     topic: home/beszel/systems
     publish: records
     payload: both
+    publishIds: true
   - collection: measurements
     topic: home/measurements
     publish: latest
@@ -46,6 +47,7 @@ collections:
 - `topic` is the MQTT base topic and must be unique. MQTT wildcards are rejected.
 - `publish` is one of `events`, `latest`, or `records`.
 - `payload` is `record`, `fields`, or `both`. It defaults to `record` for backwards compatibility.
+- `publishIds` is an optional boolean for `records`. When enabled, a retained JSON array of all record IDs is published to `<topic>/records`.
 - `sort` is optional and only valid with `latest`. Its default is `-updated,-id`.
 - `groupBy` is optional and only valid with `latest`. It publishes the newest record separately for every distinct value of the named top-level field.
 - `filter` is optional and only valid with `latest`. It is passed to PocketBase when selecting the current record or records.

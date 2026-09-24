@@ -73,6 +73,14 @@ Retained `get` messages are ignored to prevent reconnect replays.
 <topic>/records/<record-id>
 ```
 
+With `publishIds: true`, the parent topic is retained as a JSON array containing all current record IDs:
+
+```text
+<topic>/records
+```
+
+The array is initialized at startup and updated after creates, deletes, and reconnect synchronization. An empty collection publishes `[]`.
+
 When `payload` includes `fields`, each record field has its own retained topic:
 
 ```text

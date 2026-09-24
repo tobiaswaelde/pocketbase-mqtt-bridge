@@ -160,16 +160,28 @@ export class BridgeService implements OnModuleDestroy, OnModuleInit {
       if (!currentIds.has(id)) this.clearState(config, `${config.collection}/${id}`, `${config.topic}/records/${id}`);
     this.knownRecords.set(config.collection, currentIds);
     for (const record of records) this.publishRecord(config, record);
+    this.publishRecordIds(config);
   }
 
   private publishRecordEvent(config: CollectionConfig, event: PocketBaseEvent) {
     if (event.action === 'delete') {
       this.knownRecords.get(config.collection)?.delete(event.record.id);
       this.clearState(config, `${config.collection}/${event.record.id}`, `${config.topic}/records/${event.record.id}`);
+      this.publishRecordIds(config);
       return;
     }
     this.knownRecords.get(config.collection)?.add(event.record.id);
     this.publishRecord(config, event.record);
+    if (event.action === 'create') this.publishRecordIds(config);
+  }
+
+  private publishRecordIds(config: CollectionConfig) {
+    if (!config.publishIds) return;
+    this.mqtt.publish(
+      `${config.topic}/records`,
+      JSON.stringify([...(this.knownRecords.get(config.collection) ?? [])].sort()),
+      { retain: true },
+    );
   }
 
   private publishLatest(config: CollectionConfig, record: PocketBaseRecord) {
