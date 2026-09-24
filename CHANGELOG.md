@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+### Patch Changes
+
+- [`7c1763c`](https://github.com/tobiaswaelde/pocketbase-mqtt-bridge/commit/7c1763c857408bf85aba7722cf260895f065f47f) Thanks [@tobiaswaelde](https://github.com/tobiaswaelde)! - Add an optional retained record ID array at the records root topic.
+
 ## 0.1.2
 
 ### Patch Changes
